@@ -21,7 +21,7 @@ object FutureCpuRace extends App {
   }
 
   /** При каком значении параметра load время параллельная обработка выполнится быстрее??? */
-  def load = 20
+  def load = 100
 
   /** Вариант паралельного запуска в нескольких тредах */
   timer("parallel", () => Await.result(

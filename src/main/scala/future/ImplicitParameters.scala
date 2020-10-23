@@ -1,14 +1,18 @@
 package future
 
+case class Context(message: String)
+
 object ImplicitParameters extends App {
 
-  case class Context(message: String)
-
-  def printContext(implicit ctx: Context): Unit =
+  implicit val ctx = Context("1")
+  def printContext(s: String)(implicit ctx: Context): Unit =
     println(ctx.message)
 
-  //implicit val ctx = Context("Hello implicit")
+  def printContext2(s: String)(implicit ctx: Context): Unit =
+    println(ctx.message)
 
-  //printContext //Hello implicit
+  printContext("sdf") //Hello implicit
+  printContext("sdf") //Hello implicit
+
 
 }

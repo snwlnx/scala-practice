@@ -3,7 +3,7 @@ package future
 object MonadOptionExample extends App {
 
   object Monad {
-    def unit[T](x: T): Monad[T] = ???
+    def unit[T](x: T): Monad[T] = ??? //Some("1")
   }
 
   trait Monad[T] {
@@ -13,12 +13,21 @@ object MonadOptionExample extends App {
   /** Цепочки вычислений с помощью flatMap */
 
   def one: Option[Int] = Some(1)
+
   def two: Option[Int] = Some(2)
-  def none: Option[Int] = Some(1)
+
+  def none: Option[Int] = None
+
+  /*  println(one
+      .flatMap(x => none)
+      .flatMap(x => two.flatMap(y => Some(x + y)))
+    ) //none*/
+
 
   /** Проверка монадических законов */
 
   def squareFunction(x: Int): Option[Int] = Some(x * x) //f
+
   def incrementFunction(x: Int): Option[Int] = Some(x + 1) //g
 
   /**
@@ -27,7 +36,7 @@ object MonadOptionExample extends App {
    **/
   def leftUnitLaw(): Unit = {
     val monad: Option[Int] = Some(1)
-    assert(???)
+    assert(Some(1).flatMap(squareFunction) == squareFunction(1))
     println("leftUnitLaw check success")
   }
 
@@ -39,7 +48,7 @@ object MonadOptionExample extends App {
    **/
   def rightUnitLaw(): Unit = {
     val monad: Option[Int] = Some(1)
-    assert(???)
+    assert(monad.flatMap(Some(_)) == monad)
     println("rightUnitLaw check success")
   }
 
@@ -50,12 +59,13 @@ object MonadOptionExample extends App {
    * ((monad flatMap f) flatMap g) == (monad flatMap (x => f(x) flatMap g))
    **/
   def associativityLaw(): Unit = {
-    val monad: Option[Int] = Some(1)
-    val left = ???
-    val right = ???
+    val monad: Option[Int] = Some(2)
+    val left = (monad.flatMap(squareFunction)).flatMap(incrementFunction)
+    val right = monad.flatMap(x => squareFunction(x).flatMap(incrementFunction))
     assert(left == right)
     println("associativityLaw check success")
   }
 
   associativityLaw()
+
 }

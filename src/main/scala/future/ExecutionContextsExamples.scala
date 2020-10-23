@@ -4,7 +4,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 
 object ExecutionContextsExamples extends App {
 
@@ -12,31 +12,63 @@ object ExecutionContextsExamples extends App {
 
   /** single thread thread pool */
 
-  implicit val ex = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
-  //implicit val ex = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(3))
+  /*  implicit val ex: ExecutionContext =
+      ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())*/
+  //implicit val ex = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
+  /*
+    def work: Future[Unit] = Future{
+      println(Thread.currentThread())
+      Thread.sleep(3000)
+    }
 
-  def work: Future[Unit] = ???
+    println("main-" + Thread.currentThread())
+    val start: Long = System.currentTimeMillis()
+    println("start")
 
-  val start: Long = System.currentTimeMillis()
-  println("start")
+    val f1F = work
+    val f2F = work
+    val f3F = work
+
+    await(for {
+      f1 <- f1F
+      f2 <- f2F
+      f3 <- f3F
+    } yield ())
+
+    println("end - " + (System.currentTimeMillis() - start))*/
+
 
   //print(await(resF))
-  println("end - " + (System.currentTimeMillis() - start))
-
 
   /** Count runnable in for comprehension */
-
-  //private val realEx = scala.concurrent.ExecutionContext.global
   val counter = new AtomicInteger(1)
 
-  def maxCount = 3
+  def maxCount = 2
 
-  /*  val resF = for {
-      s1 <- Future.successful("1")
-      s2 <- Future.successful("2")
-      ss = s1 + s2
-    } yield ss
+  implicit val ex = new ExecutionContext {
+    private val realEx = scala.concurrent.ExecutionContext.global
 
-    print(await(resF))*/
+    override def execute(runnable: Runnable): Unit = {
+      if (counter.get() <= maxCount) {
+        counter.incrementAndGet()
+        realEx.execute(runnable)
+      }
+      else {
+        throw new Exception("thread exhausted")
+      }
+    }
+
+    override def reportFailure(cause: Throwable): Unit = ???
+  }
+
+  val resF = for {
+    s1 <- Future.successful("1")
+    s2 <- {
+      val ss = s1 + "2"
+      Future.successful("2")
+    }
+  } yield s1 + "2"
+
+  print(await(resF))
 
 }
